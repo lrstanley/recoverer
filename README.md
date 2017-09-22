@@ -3,6 +3,10 @@
 recoverer is a simple Go http middleware to catch (and optionally display when
 debugging) panics, and attempt to gracefully recover them.
 
+## Example
+
+![Example screenshot](https://i.imgur.com/y8lxEOX.png)
+
 ## Contributing
 
 Please review the [CONTRIBUTING](https://github.com/lrstanley/recoverer/blob/master/CONTRIBUTING.md)
