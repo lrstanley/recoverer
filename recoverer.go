@@ -16,7 +16,9 @@ import (
 	"runtime/debug"
 )
 
-// TODO: context keys?
+// TODO:
+//  - context keys?
+//  - change based on requested headers (e.g. plaintext)?
 
 // Options is the configuration which you can pass to the recoverer, to allow
 // showing/hiding stack, etc.
