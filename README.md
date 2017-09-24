@@ -7,6 +7,37 @@ and simple html generated error page (shown below).
 
 ## Example
 
+```go
+package main
+
+import (
+	"net/http"
+	"os"
+
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/lrstanley/recoverer"
+)
+
+func main() {
+	r := chi.NewRouter()
+
+	r.Use(recoverer.New(recoverer.Options{Logger: os.Stderr, Show: true, Simple: false}))
+	r.Use(middleware.Logger)
+	r.Use(middleware.DefaultCompress)
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello World!\n"))
+
+        panic("uhoh.. things happened.")
+	})
+
+    log.Fatal(http.ListenAndServe(":8080", r))
+}
+```
+
+## Screenshot
+
 ![Example screenshot](https://i.imgur.com/TF0Y7gV.png)
 
 ## Contributing
