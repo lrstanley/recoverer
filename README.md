@@ -1,11 +1,13 @@
 # recoverer [![status](https://travis-ci.org/lrstanley/recoverer.svg?branch=master)](https://travis-ci.org/lrstanley/recoverer) [![godoc](https://godoc.org/github.com/lrstanley/recoverer?status.png)](https://godoc.org/github.com/lrstanley/recoverer) [![goreport](https://goreportcard.com/badge/github.com/lrstanley/recoverer)](https://goreportcard.com/report/github.com/lrstanley/recoverer)
 
 recoverer is a simple Go http middleware to catch (and optionally display when
-debugging) panics, and attempt to gracefully recover them.
+debugging) panics, and attempt to gracefully recover them. recoverer also has
+the ability to display such errors (and exported expvar variables) via a clean
+and simple html generated error page (shown below).
 
 ## Example
 
-![Example screenshot](https://i.imgur.com/y8lxEOX.png)
+![Example screenshot](https://i.imgur.com/TF0Y7gV.png)
 
 ## Contributing
 
