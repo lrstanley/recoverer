@@ -29,7 +29,7 @@ func main() {
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello World!\n"))
 
-        panic("uhoh.. things happened.")
+		panic("uhoh.. things happened.")
 	})
 
     log.Fatal(http.ListenAndServe(":8080", r))
