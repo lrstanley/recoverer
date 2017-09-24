@@ -3,10 +3,13 @@
 // the LICENSE file.
 
 // Package recoverer provides an http middleware to catch and log panics,
-// and optionally
+// and optionally display a text (or html) page with the details (useful
+// when one is debugging or has a debug flag enabled). recoverer will also
+// show exported expvar variables in html mode.
 package recoverer
 
 import (
+	"expvar"
 	"fmt"
 	"html/template"
 	"io"
@@ -14,11 +17,8 @@ import (
 	"os"
 	"runtime"
 	"runtime/debug"
+	"strings"
 )
-
-// TODO:
-//  - context keys?
-//  - change based on requested headers (e.g. plaintext)?
 
 // Options is the configuration which you can pass to the recoverer, to allow
 // showing/hiding stack, etc.
@@ -43,6 +43,8 @@ type recoverer struct {
 	File  string
 	Line  int
 	Err   interface{}
+
+	ExpVars map[string]expvar.Var
 }
 
 func (rec *recoverer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +62,18 @@ func (rec *recoverer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			_, rec.File, rec.Line, _ = runtime.Caller(3)
 
+			expvar.Do(func(kv expvar.KeyValue) {
+				rec.ExpVars[kv.Key] = kv.Value
+			})
+
 			w.WriteHeader(http.StatusInternalServerError)
+
+			// Check if they accept text/html, otherwise provide basic output
+			// using the simple format.
+			if accept := r.Header.Get("Accept"); accept == "" || !strings.Contains(accept, "text/html") {
+				rec.simple(w)
+				return
+			}
 
 			if rec.options.Simple {
 				rec.simple(w)
@@ -78,7 +91,10 @@ func (rec *recoverer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // DefaultRecoverer() for a sane set of default options.
 func New(options Options) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return &recoverer{options: options, next: next}
+		return &recoverer{
+			options: options, next: next,
+			ExpVars: make(map[string]expvar.Var),
+		}
 	}
 }
 
@@ -90,12 +106,13 @@ func DefaultRecoverer() func(http.Handler) http.Handler {
 		return &recoverer{
 			options: Options{Logger: os.Stderr, Show: false},
 			next:    next,
+			ExpVars: make(map[string]expvar.Var),
 		}
 	}
 }
 
 func (rec *recoverer) simple(w io.Writer) {
-	fmt.Fprintf(w, "panic: %+v:\n", rec.Err)
+	fmt.Fprintf(w, "panic: %+v\n", rec.Err)
 	fmt.Fprintf(w, "in: %s:%d\n\n", rec.File, rec.Line)
 	fmt.Fprint(w, "stack at time of panic:\n")
 	w.Write(rec.Stack)
@@ -111,7 +128,7 @@ var tmpl = template.Must(template.New("main").Parse(`<!DOCTYPE html>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<meta name="description" content="Internal Exception Occurred">
-		<title>panic: {{printf "%+v" .Err}}</title>
+		<title>panic: {{ html (printf "%+v" .Err) }}</title>
 	</head>
 
 	<body>
@@ -123,11 +140,27 @@ var tmpl = template.Must(template.New("main").Parse(`<!DOCTYPE html>
 		</div>
 
 		<div class="main">
-			<h1>panic: <span class="panic-text">{{printf "%+v" .Err}}</span></h1>
+			<h2>panic: <span class="panic-text">{{ html (printf "%+v" .Err) }}</span></h2>
 			<hr>
-			<p>file: <code class="inline">{{.File}}</code> (line {{.Line}})</p>
+			<p>file: <code class="inline">{{ html .File }}</code> (line {{ .Line }})</p>
 
-			<pre class="panic"><code>{{printf "%s" .Stack}}</code></pre>
+			<pre class="panic"><code>{{ html (printf "%s" .Stack) }}</code></pre>
+
+			<h2 style="margin-top: 30px">exported variables (with expvars)</h2>
+			<hr>
+			<table>
+				<tr>
+					<th>Key</th>
+					<th>Value</th>
+				</tr>
+
+				{{ range $key, $val := .ExpVars }}
+				<tr>
+					<td>{{ $key }}</td>
+					<td class="skip-padding"><pre><code>{{ $val }}</code></pre></td>
+				</tr>
+				{{ end }}
+			</table>
 		</div>
 
 		<style type="text/css">
@@ -141,7 +174,7 @@ var tmpl = template.Must(template.New("main").Parse(`<!DOCTYPE html>
 		}
 
 		h1, h2, h3, h4, h5, h6 {
-			margin-top: 0;
+			margin-top: 5px;
 			margin-bottom: .5rem;
 			font-weight: 300;
 		}
@@ -170,7 +203,7 @@ var tmpl = template.Must(template.New("main").Parse(`<!DOCTYPE html>
 		.header {
 			background-color: #EE605E;
 			color: white;
-			font-size: 40px;
+			font-size: 35px;
 		}
 
 		.header > span {
@@ -208,6 +241,66 @@ var tmpl = template.Must(template.New("main").Parse(`<!DOCTYPE html>
 			font-family: "Courier New", Courier, monospace;
 			white-space: pre-wrap;
 			word-wrap: break-word;
+		}
+
+		table {
+			border-collapse: collapse;
+			table-layout: fixed;
+			width: 100%;
+		}
+
+		td:not(.skip-padding), th:not(.skip-padding) {
+			border: 1px solid #DDDDDD;
+			padding: 8px;
+		}
+
+		th, td { width: 100px; text-align: center; }
+		td+td, th+th { width: auto; text-align: left; }
+
+		td+td {
+			max-height: 200px;
+			overflow-y: auto;
+		}
+
+		tr:nth-child(even) {
+			background-color: #DDDDDD;
+		}
+
+		td > pre {
+			background-color: #383838;
+			color: white;
+			padding: 10px;
+			margin: 0;
+			text-align: left;
+			max-height: 150px;
+			overflow-x: auto;
+		}
+
+		td > pre > code {
+			font-family: "Courier New", Courier, monospace;
+			white-space: pre-wrap;
+			word-wrap: break-word;
+		}
+
+		::-webkit-scrollbar {
+			width: 10px;
+			height: 6px;
+		}
+
+		::-webkit-scrollbar-track-piece {
+			background-color: #F5F5F5;
+			background-clip: padding-box;
+		}
+
+		::-webkit-scrollbar-thumb {
+			background-color: #EE605E;
+			background-clip: padding-box;
+			border: 2px solid #FFFFFF;
+			border-radius: 6px;
+		}
+
+		::-webkit-scrollbar-thumb:window-inactive {
+			background-color: #BBBBBB;
 		}
 		</style>
 	</body>
