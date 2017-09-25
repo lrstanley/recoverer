@@ -33,6 +33,15 @@ type Options struct {
 	// Simple renders the panic and stack trace in plain text, rather than
 	// the default of HTML.
 	Simple bool
+
+	// Fn is a function which is called before the panic is written back to
+	// the connection (useful if you want, for example, to increment the
+	// total number of exceptions for a service, or if you want to only show
+	// the error to a specific set of IP's). If the returned error is not nil,
+	// the recoverer will not show the error back to the end user, and the
+	// error will be logged. recoverer WILL NOT prevent this function from
+	// panicing.
+	Fn func(req *http.Request, err interface{}, file string, line int) error
 }
 
 type recoverer struct {
@@ -55,12 +64,24 @@ func (rec *recoverer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				fmt.Fprintf(rec.options.Logger, "panic: %+v\n%s", rec.Err, rec.Stack)
 			}
 
+			_, rec.File, rec.Line, _ = runtime.Caller(3)
+
+			if rec.options.Fn != nil {
+				err := rec.options.Fn(r, rec.Err, rec.File, rec.Line)
+				if err != nil {
+					if rec.options.Logger != nil {
+						fmt.Fprintf(rec.options.Logger, "panic: recover function error occurred: %+v\n", err)
+					}
+
+					http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+					return
+				}
+			}
+
 			if !rec.options.Show {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
-
-			_, rec.File, rec.Line, _ = runtime.Caller(3)
 
 			expvar.Do(func(kv expvar.KeyValue) {
 				rec.ExpVars[kv.Key] = kv.Value
@@ -208,15 +229,16 @@ var tmpl = template.Must(template.New("main").Parse(`<!DOCTYPE html>
 
 		.header > span {
 			display: flex;
-			padding: 20px;
+			padding: 10px;
 		}
 		.header > span > img {
-			height: 65px;
+			margin-top: 5px;
+			height: 55px;
 			display: inline-block;
 		}
 		.header > span > h2 {
 			display: inline-block;
-			padding: 20px 30px;
+			padding: 15px 30px;
 			margin: 0;
 		}
 
