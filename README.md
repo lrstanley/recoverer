@@ -5,7 +5,39 @@ debugging) panics, and attempt to gracefully recover them. recoverer also has
 the ability to display such errors (and exported expvar variables) via a clean
 and simple html generated error page (shown below).
 
-## Example
+## Examples
+
+### Using net/http's default ServeMux
+
+```go
+package main
+
+import (
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/lrstanley/recoverer"
+)
+
+func hello(w http.ResponseWriter, r *http.Request) {
+	panic("uhoh.. things happened.")
+
+	w.Write([]byte("Hello World!\n"))
+}
+
+func main() {
+	rec := recoverer.New(recoverer.Options{
+		Logger: os.Stderr, Show: true, Simple: false,
+	})
+
+	http.Handle("/", rec(http.HandlerFunc(hello)))
+
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+```
+
+### Using go-chi
 
 ```go
 package main
