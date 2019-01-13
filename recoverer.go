@@ -13,12 +13,21 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"runtime"
 	"runtime/debug"
 	"strings"
 )
+
+// LoggerWriter can be used to convert a *log.Logger to an io.Writer.
+type LoggerWriter struct{ *log.Logger }
+
+func (w LoggerWriter) Write(b []byte) (int, error) {
+	w.Printf("%s", b)
+	return len(b), nil
+}
 
 // Options is the configuration which you can pass to the recoverer, to allow
 // showing/hiding stack, etc.
