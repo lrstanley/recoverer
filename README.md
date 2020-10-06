@@ -1,4 +1,13 @@
-# recoverer [![status](https://travis-ci.org/lrstanley/recoverer.svg?branch=master)](https://travis-ci.org/lrstanley/recoverer) [![godoc](https://godoc.org/github.com/lrstanley/recoverer?status.png)](https://godoc.org/github.com/lrstanley/recoverer) [![goreport](https://goreportcard.com/badge/github.com/lrstanley/recoverer)](https://goreportcard.com/report/github.com/lrstanley/recoverer) [![gocover](http://gocover.io/_badge/github.com/lrstanley/recoverer)](https://gocover.io/github.com/lrstanley/recoverer)
+# recoverer
+
+<p align="center">recoverer -- simple Go http middleware to catch panics</p>
+<p align="center">
+  <a href="https://pkg.go.dev/github.com/lrstanley/recoverer"><img src="https://pkg.go.dev/badge/github.com/lrstanley/recoverer" alt="pkg.go.dev"></a>
+  <a href="https://github.com/lrstanley/recoverer/actions"><img src="https://github.com/lrstanley/recoverer/workflows/test/badge.svg" alt="test status"></a>
+  <a href="https://goreportcard.com/report/github.com/lrstanley/recoverer"><img src="https://goreportcard.com/badge/github.com/lrstanley/recoverer" alt="goreportcard"></a>
+  <a href="https://gocover.io/github.com/lrstanley/recoverer"><img src="http://gocover.io/_badge/github.com/lrstanley/recoverer" alt="gocover"></a>
+  <a href="https://liam.sh/chat"><img src="https://img.shields.io/badge/Community-Chat%20with%20us-green.svg" alt="Community Chat"></a>
+</p>
 
 recoverer is a simple Go http middleware to catch (and optionally display when
 debugging) panics, and attempt to gracefully recover them. recoverer also has
