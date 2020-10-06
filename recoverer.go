@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"runtime"
@@ -21,11 +20,35 @@ import (
 	"strings"
 )
 
-// LoggerWriter can be used to convert a *log.Logger to an io.Writer.
-type LoggerWriter struct{ *log.Logger }
+// StdLogger represents the standard log.Logger (or similar).
+type StdLogger interface {
+	Println(v ...interface{})
+}
 
+// LoggerWriter can be used to convert a *log.Logger to an io.Writer.
+type LoggerWriter struct {
+	Logger StdLogger
+}
+
+// Write writes the bytes to the wrapped logger.
 func (w LoggerWriter) Write(b []byte) (int, error) {
-	w.Printf("%s", b)
+	w.Logger.Println(fmt.Sprintf("%s", b))
+	return len(b), nil
+}
+
+// LeveledLogger is a logger that supports different levels (primarily ERROR).
+type LeveledLogger interface {
+	Error(msg string)
+}
+
+// LeveledLoggerWriter can be used to convert a *log.Logger to an io.Writer.
+type LeveledLoggerWriter struct {
+	Logger LeveledLogger
+}
+
+// Write writes the bytes to the wrapped logger.
+func (w LeveledLoggerWriter) Write(b []byte) (int, error) {
+	w.Logger.Error(fmt.Sprintf("%s", b))
 	return len(b), nil
 }
 
