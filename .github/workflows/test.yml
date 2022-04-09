@@ -10,6 +10,6 @@ jobs:
     steps:
     - uses: actions/setup-go@v2
       #with: { go-version: ^1.15 }
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: test
       run: go mod download && go test -v .
