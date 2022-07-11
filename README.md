@@ -1,5 +1,6 @@
 <!-- template:begin:header -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
+
 <p align="center">recoverer -- Simple Go http middleware to catch (and optionally display) panics gracefully</p>
 <p align="center">
   <a href="https://github.com/lrstanley/recoverer/tags">
