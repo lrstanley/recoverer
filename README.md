@@ -1,7 +1,13 @@
+<!-- template:define:options
+{
+  "nodescription": true
+}
+-->
+![logo](https://liam.sh/-/gh/svg/lrstanley/recoverer?icon=ic%3Abaseline-error&icon.height=80&layout=left&icon.color=rgba%28222%2C+63%2C+65%2C+1%29&bgcolor=rgba%2830%2C+0%2C+0%2C+1%29)
+
 <!-- template:begin:header -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
 
-<p align="center">recoverer -- Simple Go http middleware to catch (and optionally display) panics gracefully</p>
 <p align="center">
   <a href="https://github.com/lrstanley/recoverer/tags">
     <img title="Latest Semver Tag" src="https://img.shields.io/github/v/tag/lrstanley/recoverer?style=flat-square">
