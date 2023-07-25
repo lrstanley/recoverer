@@ -53,7 +53,7 @@
 <!-- do not edit anything in this "template" block, its auto-generated -->
 ## :link: Table of Contents
 
-  - [Why](#grey_question-why)
+  - [❔ Why](#grey_question-why)
   - [Examples](#examples)
     - [Using net/http's default ServeMux](#using-nethttps-default-servemux)
     - [Using go-chi](#using-go-chi)
