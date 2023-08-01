@@ -59,7 +59,7 @@
     - [Using go-chi](#using-go-chi)
   - [Screenshot](#screenshot)
   - [Support &amp; Assistance](#raising_hand_man-support--assistance)
-  - [🤝 Contributing](#handshake-contributing)
+  - [Contributing](#handshake-contributing)
   - [License](#balance_scale-license)
 <!-- template:end:toc -->
 
